@@ -1,0 +1,24 @@
+#!/bin/bash
+
+_stock=$(awk NR==1 "/opt/justbrowsing/stock");
+_random=$(/opt/justbrowsing/randpass $USER);
+zenity --question --title "Lock screen" --text "The password is:\n$_random" --ok-label="Lock" --cancel-label="Blank";
+input=$?;
+
+if [ "$input" = "0" ]; then
+  echo -e "$_stock\n$_random\n$_random" | passwd;
+  if [ -f "/usr/bin/wbar" -a -f "/usr/bin/i3lock-spy-wbar" ]; then
+    /usr/bin/wbar &
+    /usr/bin/i3lock-spy-wbar -n -p default -i $HOME/.i3/lockscreen.png;
+    pkill wbar
+  elif [ -f "/usr/bin/i3lock-spy" ]; then
+    /usr/bin/i3lock-spy -n -p default -i $HOME/.i3/lockscreen.png;
+  else
+    /usr/bin/i3lock -n -p default -i $HOME/.i3/lockscreen.png;
+  fi
+  echo -e "$_random\n$_stock\n$_stock" | passwd;
+else
+  xset dpms force off
+fi
+
+rm $HOME/.locks/zenity.lock
