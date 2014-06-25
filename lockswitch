@@ -1,9 +1,36 @@
 #!/bin/bash
+####################
+### lockswitch #####
+version="2.0" ######
+### JustBrowsing ###
+####################
 
 _stock=$(awk NR==1 "/opt/justbrowsing/stock");
 _random=$(/opt/justbrowsing/randpass $USER);
-zenity --question --title "Lock screen" --text "The password is:\n$_random" --ok-label="Lock" --cancel-label="Blank";
-input=$?;
+
+_altlock="/opt/justbrowsing/lock-gtkdialog";
+_zenity=$(which zenity 2>/dev/null);
+_gtkdialog=$(which gtkdialog 2>/dev/null);
+if [ -z "$_zenity" -a -z "$_gtkdialog" ]; then
+  echo "ERROR: GUI requires zenity OR gtkdialog";
+  exit 1;
+elif [ ! -z "$_zenity" -a -z "$_gtkdialog" ]; then
+    zenity --question --title "Lock screen" --text "The password is:\n$_random" --ok-label="Lock" --cancel-label="Blank";
+    input=$?;
+elif [ -z "$_zenity" -a ! -z "$_gtkdialog" -a -f "$_altlock" ]; then
+    input=$("$_altlock" "$_random" | grep ^EXIT= | awk -F = '{print $2}' | sed 's/"//g');
+else
+  if [ -z "$1" -o "$1" = "--zenity" ]; then
+    zenity --question --title "Lock screen" --text "The password is:\n$_random" --ok-label="Lock" --cancel-label="Blank";
+    input=$?;
+  elif [ "$1" = "--gtkdialog" ]; then
+    input=$("$_altlock" "$_random" | grep ^EXIT= | awk -F = '{print $2}' | sed 's/"//g');
+  else
+    echo "USAGE: $0 [--zenity|--gtkdialog]";
+    exit 1;
+  fi
+fi
+  
 
 if [ "$input" = "0" ]; then
   echo -e "$_stock\n$_random\n$_random" | passwd;

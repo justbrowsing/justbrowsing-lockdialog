@@ -1,0 +1,48 @@
+#!/bin/bash
+######################
+### lock-gtkdialog ###
+version="0.1" ########
+### JustBrowsing #####
+######################
+
+workDir=$(dirname $(readlink  -e "$0"));
+input="$1"
+[ -z "$input" ] && input="ERROR: BUG DETECTED"
+
+LOCK_DIALOG='
+<window title="Lock screen" space-expand="true" space-fill="true" homogeneous="true" resizable="false">
+<vbox homogeneous="true">
+  <hbox homogeneous="true">
+    <pixmap>
+      <height>48</height>
+      <width>48</width>
+      <input file>'$workDir'/dialog-question.png</input>
+    </pixmap>
+    <vbox>
+      <text justify="0">
+        <label>The password is:</label>
+      </text>
+      <text justify="0">
+        <label>'$input'</label>
+      </text>
+    </vbox>
+  </hbox>
+
+  <hbox>
+      <button space-expand="true" space-fill="true" homogeneous="true" label="Blank">
+        <action>exit:1</action>
+        <action accel-key="0xff1b" accel-mods="16" signal="key-release-event">exit:1</action>
+      </button>
+      <button space-expand="true" space-fill="true" label="Lock" is-focus="true">
+        <action>exit:0</action>
+        <action accel-key="0xff1b" accel-mods="16" signal="key-release-event">exit:1</action>
+      </button>
+   </hbox>
+</vbox>
+</window>
+'
+
+export LOCK_DIALOG
+gtkdialog -c --program LOCK_DIALOG
+
+### END ###
